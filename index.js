@@ -27,7 +27,7 @@ app.get('/', (req,res) => {
     res.send({message: "Api is working"})
 });
 
-//http://localhost:8000/add-studio
+//http://localhost:8000/studio/:id
 //post studio data
 app.post('/add-studio', async (req, res) => {
   try {
@@ -63,6 +63,58 @@ app.get("/studio/:id", async (req, res) => {
     res.send(result);
   } catch (error) {
     res.status(500).send({ message: "Failed to fetch destination", error: error.message });
+  }
+});
+
+
+//Update Studio Details
+app.patch("/studio/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid destination ID format" });
+    }
+    // Remove _id from updateData if present to avoid MongoServerError (immutable field)
+    const { _id, ...updateData } = req.body;
+    const result = await studioCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateData }
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to update destination", error: error.message });
+  }
+});
+
+//Delete Studio From my listing
+app.delete("/studio/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid destination ID format" });
+    }
+    const result = await studioCollection.deleteOne({ _id: new ObjectId(id) });
+    res.json(result);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to delete destination", error: error.message });
+  }
+});
+
+
+//Delete Studio Details
+app.delete("/studio/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid destination ID format" });
+    }
+    const result = await studioCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "Destination not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to delete destination", error: error.message });
   }
 });
 
