@@ -134,9 +134,26 @@ app.post('/booking', async (req, res) => {
 //Get my bookings 
 app.get('/my-bookings/:email', async(req,res) => {
     const {email} = req.params
-    const result = await bookingCollection.find({email:email}).toArray()
+    const result = await bookingCollection.find({userEmail:email}).toArray()
     res.send(result);
 })
+
+//delete my booking api
+app.delete("/my-bookings/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid booking ID format" });
+    }
+    const result = await bookingCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "booking data not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to delete booking", error: error.message });
+  }
+}); 
 
 
 app.listen(PORT, () => {
