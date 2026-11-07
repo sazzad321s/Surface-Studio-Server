@@ -36,7 +36,7 @@ app.post('/add-studio', async (req, res) => {
     const result = await studioCollection.insertOne(data);
     res.status(201).send(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to add destination", error: error.message });
+    res.status(500).send({ message: "Failed to add ", error: error.message });
   }
 });
 
@@ -46,7 +46,7 @@ app.get('/studios', async (req, res) => {
     const result = await studioCollection.find().toArray();
     res.send(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to fetch destinations", error: error.message });
+    res.status(500).send({ message: "Failed to fetch ", error: error.message });
   }
 });
 
@@ -55,15 +55,15 @@ app.get("/studio/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
-      return res.status(400).send({ message: "Invalid destination ID format" });
+      return res.status(400).send({ message: "Invalid  ID format" });
     }
     const result = await studioCollection.findOne({ _id: new ObjectId(id) });
     if (!result) {
-      return res.status(404).send({ message: "Destination not found" });
+      return res.status(404).send({ message: " not found" });
     }
     res.send(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to fetch destination", error: error.message });
+    res.status(500).send({ message: "Failed to fetch ", error: error.message });
   }
 });
 
@@ -73,7 +73,7 @@ app.patch("/studio/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
-      return res.status(400).send({ message: "Invalid destination ID format" });
+      return res.status(400).send({ message: "Invalid  ID format" });
     }
     // Remove _id from updateData if present to avoid MongoServerError (immutable field)
     const { _id, ...updateData } = req.body;
@@ -83,7 +83,7 @@ app.patch("/studio/:id", async (req, res) => {
     );
     res.json(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to update destination", error: error.message });
+    res.status(500).send({ message: "Failed to update ", error: error.message });
   }
 });
 
@@ -92,12 +92,12 @@ app.delete("/studio/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
-      return res.status(400).send({ message: "Invalid destination ID format" });
+      return res.status(400).send({ message: "Invalid  ID format" });
     }
     const result = await studioCollection.deleteOne({ _id: new ObjectId(id) });
     res.json(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to delete destination", error: error.message });
+    res.status(500).send({ message: "Failed to delete ", error: error.message });
   }
 });
 
@@ -107,15 +107,15 @@ app.delete("/studio/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
-      return res.status(400).send({ message: "Invalid destination ID format" });
+      return res.status(400).send({ message: "Invalid studio ID format" });
     }
     const result = await studioCollection.deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
-      return res.status(404).send({ message: "Destination not found" });
+      return res.status(404).send({ message: "studio details not found" });
     }
     res.json(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to delete destination", error: error.message });
+    res.status(500).send({ message: "Failed to delete studio details", error: error.message });
   }
 });
 
@@ -127,7 +127,7 @@ app.post('/booking', async (req, res) => {
     const result = await bookingCollection.insertOne(data);
     res.status(201).send(result);
   } catch (error) {
-    res.status(500).send({ message: "Failed to add destination", error: error.message });
+    res.status(500).send({ message: "Failed to booking", error: error.message });
   }
 });
 
@@ -154,6 +154,20 @@ app.delete("/my-bookings/:id", async (req, res) => {
     res.status(500).send({ message: "Failed to delete booking", error: error.message });
   }
 }); 
+
+// Top 6 studio
+app.get("/top-studios", async (req, res) => {
+  try {
+    const result = await studioCollection.find().sort({ rating: -1 }).limit(6).toArray();
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to get top studios",
+      error: error.message,
+    });
+  }
+});
 
 
 app.listen(PORT, () => {
