@@ -21,6 +21,7 @@ try {
 
 const db = client.db("surface-studio")
 const studioCollection = db.collection("studio")
+const bookingCollection = db.collection("booking")
 
 //Health Check Endpoitn
 app.get('/', (req,res) => {
@@ -115,6 +116,18 @@ app.delete("/studio/:id", async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(500).send({ message: "Failed to delete destination", error: error.message });
+  }
+});
+
+
+//Post booking details api
+app.post('/booking', async (req, res) => {
+  try {
+    const data = req.body;
+    const result = await bookingCollection.insertOne(data);
+    res.status(201).send(result);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to add destination", error: error.message });
   }
 });
 
