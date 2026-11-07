@@ -131,6 +131,13 @@ app.post('/booking', async (req, res) => {
   }
 });
 
+//Get my bookings 
+app.get('/my-bookings/:email', async(req,res) => {
+    const {email} = req.params
+    const result = await bookingCollection.find({email:email}).toArray()
+    res.send(result);
+})
+
 
 app.listen(PORT, () => {
     console.log(`server is runnig at port ${PORT}`)
