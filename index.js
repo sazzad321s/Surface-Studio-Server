@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors";
 import 'dotenv/config';
 import { MongoClient, ObjectId } from 'mongodb';
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 const app = express()
 const PORT = process.env.PORT || 8000;
@@ -23,14 +24,41 @@ const db = client.db("surface-studio")
 const studioCollection = db.collection("studio")
 const bookingCollection = db.collection("booking")
 
-//Health Check Endpoitn
+//middleware
+const verifyToken = async(req,res,next) => {
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+      return res.status(401).send({message: "Unauthorized!"});
+    }
+   
+    const token = authHeader.split(" ")[1];
+    if(!token){
+      return res.status(401).send({message: "Unauthorized!"});
+    }
+
+    const JWKS = createRemoteJWKSet(
+      new URL("http://localhost:3000/api/auth/jwks"),
+    );
+
+    try{
+      const {payload} = await jwtVerify(token, JWKS);
+      next();
+    }
+    catch(error){
+      return res.status(500).send({message: "Server Down!"})
+    }
+
+    
+}
+
+//Health Check Endpoint
 app.get('/', (req,res) => {
     res.send({message: "Api is working"})
 });
 
 //http://localhost:8000/studio/:id
 //post studio data
-app.post('/add-studio', async (req, res) => {
+app.post('/add-studio',verifyToken, async (req, res) => {
   try {
     const data = req.body;
     const result = await studioCollection.insertOne(data);
@@ -69,7 +97,7 @@ app.get("/studio/:id", async (req, res) => {
 
 
 //Update Studio Details
-app.patch("/studio/:id", async (req, res) => {
+app.patch("/studio/:id",verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
@@ -88,7 +116,7 @@ app.patch("/studio/:id", async (req, res) => {
 });
 
 //Delete Studio From my listing
-app.delete("/studio/:id", async (req, res) => {
+app.delete("/studio/:id",verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
@@ -103,7 +131,7 @@ app.delete("/studio/:id", async (req, res) => {
 
 
 //Delete Studio Details
-app.delete("/studio/:id", async (req, res) => {
+app.delete("/studio/:id",verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
@@ -121,7 +149,7 @@ app.delete("/studio/:id", async (req, res) => {
 
 
 //Post booking details api
-app.post('/booking', async (req, res) => {
+app.post('/booking',verifyToken, async (req, res) => {
   try {
     const data = req.body;
     const result = await bookingCollection.insertOne(data);
@@ -131,15 +159,27 @@ app.post('/booking', async (req, res) => {
   }
 });
 
+// get all booking api
+app.get("/bookings",verifyToken, async (req, res) => {
+  try {
+    const result = await bookingCollection.find().toArray();
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to get bookings",
+    });
+  }
+});
+
 //Get my bookings 
-app.get('/my-bookings/:email', async(req,res) => {
+app.get('/my-bookings/:email',verifyToken, async(req,res) => {
     const {email} = req.params
     const result = await bookingCollection.find({userEmail:email}).toArray()
     res.send(result);
 })
 
 //delete my booking api
-app.delete("/my-bookings/:id", async (req, res) => {
+app.delete("/my-bookings/:id",verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     if (!ObjectId.isValid(id)) {
